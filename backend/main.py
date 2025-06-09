@@ -1,11 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from typing import List, Optional, Dict
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 import os
 import json
 import re
-from datetime import datetime
 import httpx
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
@@ -13,9 +15,22 @@ import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import uuid
+
+# Import database and auth modules
+from database import get_db, init_db, User
+from auth import (
+    UserCreate, UserLogin, UserResponse, Token,
+    create_user, authenticate_user, create_access_token,
+    get_current_active_user, ACCESS_TOKEN_EXPIRE_MINUTES
+)
+from services import ConversationService, AssessmentService, VideoService
 
 # Load environment variables
 load_dotenv()
+
+# Initialize database
+init_db()
 
 # Download required NLTK data
 try:
@@ -35,10 +50,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security
+security = HTTPBearer()
+
 # Pydantic models
 class ChatMessage(BaseModel):
     message: str
-    user_id: Optional[str] = "anonymous"
+    session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
@@ -46,9 +64,24 @@ class ChatResponse(BaseModel):
     confidence: float
     videos: Optional[List[Dict]] = None
     suggestions: Optional[List[str]] = None
+    session_id: str
 
 class VideoSearchRequest(BaseModel):
     query: str
+    max_results: Optional[int] = 5
+
+class AssessmentRequest(BaseModel):
+    answers: Dict[str, int]  # question_1: answer, question_2: answer, etc.
+
+class AssessmentResponse(BaseModel):
+    id: int
+    total_score: int
+    risk_level: str
+    recommendations: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
     max_results: Optional[int] = 5
 
 # Intent classification system
@@ -249,19 +282,74 @@ class YouTubeService:
 # Initialize YouTube service
 youtube_service = YouTubeService()
 
-# Chat conversation storage (in production, use a database)
-conversations = {}
+# API Routes
 
 @app.get("/")
 async def root():
     return {"message": "Melvis - Mental Health AI Chatbot API"}
 
+# Authentication endpoints
+@app.post("/auth/register", response_model=Token)
+async def register(user: UserCreate, db: Session = Depends(get_db)):
+    """Register a new user"""
+    try:
+        db_user = create_user(db, user)
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": db_user.email}, expires_delta=access_token_expires
+        )
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse.from_orm(db_user)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Registration error: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@app.post("/auth/login", response_model=Token)
+async def login(user: UserLogin, db: Session = Depends(get_db)):
+    """Login user"""
+    try:
+        db_user = authenticate_user(db, user.email, user.password)
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": db_user.email}, expires_delta=access_token_expires
+        )
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse.from_orm(db_user)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@app.get("/auth/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_active_user)):
+    """Get current user info"""
+    return UserResponse.from_orm(current_user)
+
 @app.post("/chat", response_model=ChatResponse)
-async def chat(chat_message: ChatMessage):
+async def chat(
+    chat_message: ChatMessage,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
     """Process chat message and return response with intent classification"""
     try:
         message = chat_message.message.strip()
-        user_id = chat_message.user_id
+        session_id = chat_message.session_id or str(uuid.uuid4())
         
         if not message:
             raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -279,36 +367,58 @@ async def chat(chat_message: ChatMessage):
         if video_keywords:
             # Use the first keyword for video search
             videos = await youtube_service.search_videos(video_keywords[0], max_results=3)
+            
+            # Save video recommendations to database
+            for video in videos:
+                try:
+                    VideoService.save_video_recommendation(
+                        db=db,
+                        video_id=video['id'],
+                        title=video['title'],
+                        description=video.get('description'),
+                        thumbnail_url=video.get('thumbnail'),
+                        youtube_url=video['url'],
+                        channel_name=video.get('channel'),
+                        intent_category=intent,
+                        keywords=','.join(video_keywords)
+                    )
+                except Exception as e:
+                    print(f"Error saving video recommendation: {e}")
         
         # Generate follow-up suggestions
         suggestions = generate_suggestions(intent)
         
-        # Store conversation (in production, use proper database)
-        if user_id not in conversations:
-            conversations[user_id] = []
-        
-        conversations[user_id].append({
-            "timestamp": datetime.now().isoformat(),
-            "user_message": message,
-            "bot_response": response,
-            "intent": intent,
-            "confidence": confidence
-        })
+        # Store conversation in database
+        ConversationService.create_conversation(
+            db=db,
+            user_id=current_user.id,
+            user_message=message,
+            bot_response=response,
+            intent=intent,
+            confidence=confidence,
+            session_id=session_id
+        )
         
         return ChatResponse(
             response=response,
             intent=intent,
             confidence=confidence,
             videos=videos,
-            suggestions=suggestions
+            suggestions=suggestions,
+            session_id=session_id
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail="An error occurred processing your message")
 
 @app.post("/search-videos")
-async def search_videos(request: VideoSearchRequest):
+async def search_videos(
+    request: VideoSearchRequest,
+    current_user: User = Depends(get_current_active_user)
+):
     """Search for mental health related videos"""
     try:
         videos = await youtube_service.search_videos(request.query, request.max_results)
@@ -317,12 +427,90 @@ async def search_videos(request: VideoSearchRequest):
         print(f"Video search error: {e}")
         raise HTTPException(status_code=500, detail="An error occurred searching for videos")
 
-@app.get("/conversation/{user_id}")
-async def get_conversation(user_id: str):
-    """Get conversation history for a user"""
-    if user_id in conversations:
-        return {"conversation": conversations[user_id]}
-    return {"conversation": []}
+@app.get("/conversations")
+async def get_conversations(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = None,
+    limit: int = 50
+):
+    """Get conversation history for current user"""
+    try:
+        conversations = ConversationService.get_user_conversations(
+            db=db,
+            user_id=current_user.id,
+            limit=limit,
+            session_id=session_id
+        )
+        return {"conversations": conversations}
+    except Exception as e:
+        print(f"Get conversations error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred retrieving conversations")
+
+@app.get("/conversation-sessions")
+async def get_conversation_sessions(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get all conversation session IDs for current user"""
+    try:
+        sessions = ConversationService.get_conversation_sessions(db=db, user_id=current_user.id)
+        return {"sessions": sessions}
+    except Exception as e:
+        print(f"Get conversation sessions error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred retrieving conversation sessions")
+
+# Assessment endpoints
+@app.post("/assessment", response_model=AssessmentResponse)
+async def create_assessment(
+    assessment: AssessmentRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new mental health assessment"""
+    try:
+        db_assessment = AssessmentService.create_assessment(
+            db=db,
+            user_id=current_user.id,
+            answers=assessment.answers
+        )
+        return AssessmentResponse.from_orm(db_assessment)
+    except Exception as e:
+        print(f"Assessment creation error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred creating the assessment")
+
+@app.get("/assessments", response_model=List[AssessmentResponse])
+async def get_assessments(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    limit: int = 10
+):
+    """Get assessment history for current user"""
+    try:
+        assessments = AssessmentService.get_user_assessments(
+            db=db,
+            user_id=current_user.id,
+            limit=limit
+        )
+        return [AssessmentResponse.from_orm(assessment) for assessment in assessments]
+    except Exception as e:
+        print(f"Get assessments error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred retrieving assessments")
+
+@app.get("/assessment/latest", response_model=Optional[AssessmentResponse])
+async def get_latest_assessment(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get the most recent assessment for current user"""
+    try:
+        assessment = AssessmentService.get_latest_assessment(db=db, user_id=current_user.id)
+        if assessment:
+            return AssessmentResponse.from_orm(assessment)
+        return None
+    except Exception as e:
+        print(f"Get latest assessment error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred retrieving the latest assessment")
 
 def generate_suggestions(intent: str) -> List[str]:
     """Generate follow-up suggestions based on intent"""
