@@ -1,15 +1,15 @@
-# Melvis - Mental Health AI Chatbot 🧠💙
+# Melvis - Mental Health AI Chatbot 🧠
 
 A compassionate AI chatbot designed to provide mental health support, featuring intent-based conversations and YouTube video recommendations.
 
 ## Features
 
-- 🤖 **Intent-Based Chat**: Advanced natural language understanding to classify user intent (anxiety, depression, stress, sleep, self-care)
-- 🎥 **YouTube Integration**: Curated mental health videos based on conversation context
-- 💙 **Beautiful Blue Theme**: Calming, therapeutic UI design
-- 🚀 **Real-time Chat**: Smooth, responsive conversation experience
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-- 🎯 **Smart Suggestions**: Context-aware follow-up suggestions
+-  **Intent-Based Chat**: Advanced natural language understanding to classify user intent (anxiety, depression, stress, sleep, self-care)
+-  **YouTube Integration**: Curated mental health videos based on conversation context
+-  **Beautiful Blue Theme**: Calming, therapeutic UI design
+-  **Real-time Chat**: Smooth, responsive conversation experience
+-  **Responsive Design**: Works on desktop and mobile devices
+-  **Smart Suggestions**: Context-aware follow-up suggestions
 
 ## Tech Stack
 
@@ -130,5 +130,3 @@ GET /conversation/{user_id}
    ```
    YOUTUBE_API_KEY=your_api_key_here
    ```
-
-Built with 💙 for mental health awareness and support.
