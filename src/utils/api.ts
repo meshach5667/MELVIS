@@ -62,6 +62,7 @@ export const generateUserId = (): string => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export const handleLogin = async (email: string, password: string): Promise<boolean> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
@@ -132,6 +133,8 @@ export const clearAuthData = (): void => {
   // Optionally, redirect to login page
   window.location.href = '/login';
 }
+=======
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
 >>>>>>> parent of 2124527 (otondo melvis)
 =======
