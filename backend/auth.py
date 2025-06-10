@@ -5,7 +5,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 import bcrypt
 import os
 from database import get_db, User
@@ -26,8 +26,15 @@ class UserCreate(BaseModel):
     email: str
     username: str
     password: str
+    confirmPassword: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+    @validator('confirmPassword')
+    def passwords_match(cls, v, values, **kwargs):
+        if 'password' in values and v != values['password']:
+            raise ValueError('Passwords do not match')
+        return v
 
 class UserLogin(BaseModel):
     email: str

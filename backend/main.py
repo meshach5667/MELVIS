@@ -50,8 +50,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Security
-security = HTTPBearer()
 
 # Pydantic models
 class ChatMessage(BaseModel):

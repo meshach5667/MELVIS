@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
+import { Heart, Eye, EyeOff, Mail, Lock, User as UserIcon, Loader } from 'lucide-react'; // Renamed User to UserIcon
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState(''); // Added username state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,7 +20,7 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !username || !email || !password || !confirmPassword) { // Added username to validation
       setError('Please fill in all fields');
       return;
     }
@@ -34,11 +35,11 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    const success = await signup(name, email, password);
-    if (success) {
+    const signupSuccess = await signup(name, username, email, password, confirmPassword);
+    if (signupSuccess) {
       navigate('/home');
     } else {
-      setError('Failed to create account. Please try again.');
+      setError('Failed to create account. Please check your details and try again.');
     }
   };
 
@@ -46,7 +47,7 @@ const SignupPage: React.FC = () => {
     <div className="min-h-screen bg-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,7 +86,7 @@ const SignupPage: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Corrected to UserIcon */}
                 </div>
                 <input
                   id="name"
@@ -94,6 +95,27 @@ const SignupPage: React.FC = () => {
                   onChange={(e) => setName(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your full name"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Username Field - Added */}
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Corrected to UserIcon */}
+                </div>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your username"
                   required
                 />
               </div>
@@ -224,14 +246,14 @@ const SignupPage: React.FC = () => {
         </motion.div>
 
         {/* Back to Home */}
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
             ← Back to Home

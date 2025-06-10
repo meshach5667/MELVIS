@@ -218,7 +218,7 @@ const LandingPage: React.FC = () => {
               <span className="ml-2 text-2xl font-bold">Melvis</span>
             </div>
             <p className="text-gray-400 text-center">
-              © 2024 Melvis. Your mental health companion. All rights reserved.
+              © 2025 Melvis. Your mental health companion. All rights reserved.
             </p>
           </div>
         </div>
