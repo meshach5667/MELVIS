@@ -13,8 +13,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Reverted to 5 arguments, omitting lastName
   signup: (name: string, username: string, email: string, password: string, confirmPassword: string) => Promise<boolean>; 
+=======
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
   signup: (name: string, email: string, password: string) => Promise<boolean>;
 >>>>>>> parent of 2124527 (otondo melvis)
@@ -91,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Reverted to 5 arguments, omitting lastName
   const signup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
     try {
@@ -111,6 +116,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+=======
+  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+>>>>>>> parent of 2124527 (otondo melvis)
       
       // For now, simulate API call
       // In production, replace with actual API call
@@ -130,6 +140,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         setUser(mockUser);
         return true;
+<<<<<<< HEAD
+>>>>>>> parent of 2124527 (otondo melvis)
+=======
 >>>>>>> parent of 2124527 (otondo melvis)
       }
       return false;

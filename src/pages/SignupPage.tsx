@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Heart, Eye, EyeOff, Mail, Lock, User as UserIcon, Loader } from 'lucide-react'; // Renamed User to UserIcon to avoid conflict
+=======
+import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
 import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
 >>>>>>> parent of 2124527 (otondo melvis)
@@ -25,7 +29,11 @@ const SignupPage: React.FC = () => {
     setError('');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (!name || !username || !email || !password || !confirmPassword) { // Removed lastName from validation
+=======
+    if (!name || !email || !password || !confirmPassword) {
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
     if (!name || !email || !password || !confirmPassword) {
 >>>>>>> parent of 2124527 (otondo melvis)
@@ -44,9 +52,14 @@ const SignupPage: React.FC = () => {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Use the signup function from AuthContext, revert to original fields
     const signupSuccess = await signup(name, username, email, password, confirmPassword); // Removed lastName
     if (signupSuccess) {
+=======
+    const success = await signup(name, email, password);
+    if (success) {
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
     const success = await signup(name, email, password);
     if (success) {
@@ -101,7 +114,11 @@ const SignupPage: React.FC = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
 <<<<<<< HEAD
+<<<<<<< HEAD
                   <UserIcon className="h-5 w-5 text-gray-400" />
+=======
+                  <User className="h-5 w-5 text-gray-400" />
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
                   <User className="h-5 w-5 text-gray-400" />
 >>>>>>> parent of 2124527 (otondo melvis)
@@ -118,6 +135,7 @@ const SignupPage: React.FC = () => {
               </div>
             </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             {/* Username Field - Added */}
             <div>
@@ -140,6 +158,8 @@ const SignupPage: React.FC = () => {
               </div>
             </div>
 
+=======
+>>>>>>> parent of 2124527 (otondo melvis)
 =======
 >>>>>>> parent of 2124527 (otondo melvis)
             {/* Email Field */}

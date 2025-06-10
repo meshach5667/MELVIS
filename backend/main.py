@@ -53,6 +53,8 @@ app.add_middleware(
 # Security
 security = HTTPBearer()
 
+# Security
+security = HTTPBearer()
 
 # Pydantic models
 class ChatMessage(BaseModel):
