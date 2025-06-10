@@ -36,16 +36,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           }`}
         >
           {message.sender === 'user' ? (
-            <User className="w-4 h-4 text-white" />
+            <User className="w-4 h-4 text-black" />
           ) : (
-            <Bot className="w-4 h-4 text-white" />
+            <Bot className="w-4 h-4 text-black" />
           )}
         </div>
         <div
           className={`rounded-2xl p-3 ${
             message.sender === 'user'
               ? 'bg-blue-500 text-white'
-              : 'bg-white/10 backdrop-blur-sm text-white border border-white/20'
+              : 'bg-white/10 backdrop-blur-sm text-black border border-white/20'
           }`}
         >
           <p className="text-sm leading-relaxed">{message.text}</p>
