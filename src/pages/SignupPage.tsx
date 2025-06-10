@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Eye, EyeOff, Mail, Lock, User as UserIcon, Loader } from 'lucide-react'; // Renamed User to UserIcon
+import { Heart, Eye, EyeOff, Mail, Lock, User as UserIcon, Loader } from 'lucide-react'; // Renamed User to UserIcon to avoid conflict
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+// Removed direct import of handleSignup from api.ts as we use AuthContext's signup
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,7 +21,7 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!name || !username || !email || !password || !confirmPassword) { // Added username to validation
+    if (!name || !username || !email || !password || !confirmPassword) { // Removed lastName from validation
       setError('Please fill in all fields');
       return;
     }
@@ -35,7 +36,8 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    const signupSuccess = await signup(name, username, email, password, confirmPassword);
+    // Use the signup function from AuthContext, revert to original fields
+    const signupSuccess = await signup(name, username, email, password, confirmPassword); // Removed lastName
     if (signupSuccess) {
       navigate('/home');
     } else {
@@ -47,7 +49,7 @@ const SignupPage: React.FC = () => {
     <div className="min-h-screen bg-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <motion.div
+        <motion.div 
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,7 +88,7 @@ const SignupPage: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Corrected to UserIcon */}
+                  <UserIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="name"
@@ -107,7 +109,7 @@ const SignupPage: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Corrected to UserIcon */}
+                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Using UserIcon */}
                 </div>
                 <input
                   id="username"
@@ -246,14 +248,14 @@ const SignupPage: React.FC = () => {
         </motion.div>
 
         {/* Back to Home */}
-        <motion.div
+        <motion.div 
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Link
-            to="/"
+          <Link 
+            to="/" 
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
             ← Back to Home

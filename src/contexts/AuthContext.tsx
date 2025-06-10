@@ -13,7 +13,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, username: string, email: string, password: string, confirmPassword: string) => Promise<boolean>; // Added username and confirmPassword
+  // Reverted to 5 arguments, omitting lastName
+  signup: (name: string, username: string, email: string, password: string, confirmPassword: string) => Promise<boolean>; 
   logout: () => void;
   isLoading: boolean;
 }
@@ -77,9 +78,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Reverted to 5 arguments, omitting lastName
   const signup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      // Reverted to 5 arguments, omitting lastName
       const success = await apiHandleSignup(name, username, email, password, confirmPassword);
       if (success) {
         const userDataString = Cookies.get('user_data') || localStorage.getItem('user');

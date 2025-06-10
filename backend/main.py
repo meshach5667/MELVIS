@@ -51,6 +51,7 @@ app.add_middleware(
 )
 
 
+
 # Pydantic models
 class ChatMessage(BaseModel):
     message: str

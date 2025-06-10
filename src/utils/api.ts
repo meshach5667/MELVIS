@@ -90,7 +90,7 @@ export const handleLogin = async (email: string, password: string): Promise<bool
     return false;
   }
 }
-// Updated to include all fields required by the backend (UserCreate model)
+// Reverted to the state before lastName was introduced
 export const handleSignup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
   try {
     const payload = {
@@ -98,7 +98,8 @@ export const handleSignup = async (name: string, username: string, email: string
       username,
       password,
       confirmPassword,
-      first_name: name,
+      first_name: name, // 'name' from frontend maps to 'first_name'
+      // last_name is omitted as it was in the target state
     };
     const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
     if (response.status === 201 || response.status === 200) {
