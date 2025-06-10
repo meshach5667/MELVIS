@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
 export const API_BASE_URL = 'http://localhost:8000';
 
@@ -41,32 +40,17 @@ export interface VideoSearchRequest {
 
 export const chatApi = {
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    const token = Cookies.get('auth_token');
-    const headers: Record<string, string> = {}; // Explicitly type headers
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const response = await axios.post<ChatResponse>(`${API_BASE_URL}/chat`, request, { headers });
+    const response = await axios.post<ChatResponse>(`${API_BASE_URL}/chat`, request);
     return response.data;
   },
 
   async searchVideos(request: VideoSearchRequest): Promise<{ videos: Video[] }> {
-    const token = Cookies.get('auth_token');
-    const headers: Record<string, string> = {}; // Explicitly type headers
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const response = await axios.post<{ videos: Video[] }>(`${API_BASE_URL}/search-videos`, request, { headers });
+    const response = await axios.post<{ videos: Video[] }>(`${API_BASE_URL}/search-videos`, request);
     return response.data;
   },
 
   async getConversation(userId: string): Promise<{ conversation: any[] }> {
-    const token = Cookies.get('auth_token');
-    const headers: Record<string, string> = {}; // Explicitly type headers
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const response = await axios.get<{ conversation: any[] }>(`${API_BASE_URL}/conversation/${userId}`, { headers });
+    const response = await axios.get<{ conversation: any[] }>(`${API_BASE_URL}/conversation/${userId}`);
     return response.data;
   }
 };
@@ -76,6 +60,7 @@ export const generateUserId = (): string => {
 };
 
 
+<<<<<<< HEAD
 export const handleLogin = async (email: string, password: string): Promise<boolean> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
@@ -146,3 +131,5 @@ export const clearAuthData = (): void => {
   // Optionally, redirect to login page
   window.location.href = '/login';
 }
+=======
+>>>>>>> parent of 2124527 (otondo melvis)

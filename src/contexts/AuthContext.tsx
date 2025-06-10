@@ -1,20 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import Cookies from 'js-cookie';
-import { handleSignup as apiHandleSignup, handleLogin as apiHandleLogin } from '../utils/api';
 
 interface User {
   id: string;
   email: string;
-  name: string; // This might become 'username' or 'fullName' depending on backend
+  name: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+<<<<<<< HEAD
   // Reverted to 5 arguments, omitting lastName
   signup: (name: string, username: string, email: string, password: string, confirmPassword: string) => Promise<boolean>; 
+=======
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+>>>>>>> parent of 2124527 (otondo melvis)
   logout: () => void;
   isLoading: boolean;
 }
@@ -58,18 +61,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const success = await apiHandleLogin(email, password); // Use actual API handler
-      if (success) {
-        // Assuming apiHandleLogin now stores user data and token
-        // Fetch user data from where apiHandleLogin stores it (e.g., localStorage)
-        // For now, let's assume it returns the user or we can fetch it
-        // This part might need adjustment based on how apiHandleLogin is implemented
-        const userData = Cookies.get('user_data'); // Or localStorage.getItem('user')
-        if (userData) {
-          setUser(JSON.parse(userData));
-        }
+      
+      // For now, simulate API call
+      // In production, replace with actual API call
+      if (email && password) {
+        const mockUser: User = {
+          id: '1',
+          email,
+          name: email.split('@')[0],
+        };
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Store auth data
+        Cookies.set('auth_token', 'mock_token_' + Date.now(), { expires: 7 });
+        Cookies.set('user_data', JSON.stringify(mockUser), { expires: 7 });
+        
+        setUser(mockUser);
+        return true;
       }
-      return success;
+      return false;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -78,6 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+<<<<<<< HEAD
   // Reverted to 5 arguments, omitting lastName
   const signup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
     try {
@@ -94,10 +107,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             name: parsedUser.name || parsedUser.username || parsedUser.user?.username,
           });
         }
+=======
+  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      
+      // For now, simulate API call
+      // In production, replace with actual API call
+      if (name && email && password) {
+        const mockUser: User = {
+          id: '1',
+          email,
+          name,
+        };
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Store auth data
+        Cookies.set('auth_token', 'mock_token_' + Date.now(), { expires: 7 });
+        Cookies.set('user_data', JSON.stringify(mockUser), { expires: 7 });
+        
+        setUser(mockUser);
+        return true;
+>>>>>>> parent of 2124527 (otondo melvis)
       }
-      return success;
+      return false;
     } catch (error) {
-      console.error('Signup error in AuthContext:', error);
+      console.error('Signup error:', error);
       return false;
     } finally {
       setIsLoading(false);

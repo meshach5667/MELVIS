@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Eye, EyeOff, Mail, Lock, Loader } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { handleLogin } from '../utils/api'; // Corrected import path
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -22,19 +21,9 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // Use the handleLogin function from api.ts
-    const token = await handleLogin(email, password);
-    if (token) {
-      // Call the login function from AuthContext to set the user and token
-      const loginSuccess = await login(email, password);
-      if (loginSuccess) {
-        navigate('/home');
-      } else {
-        // This case should ideally not be reached if handleLogin was successful
-        // and AuthContext's login also uses handleLogin or a similar mechanism.
-        // However, it's a good practice to handle it.
-        setError('Login failed after token retrieval. Please try again.');
-      }
+    const success = await login(email, password);
+    if (success) {
+      navigate('/home');
     } else {
       setError('Invalid email or password');
     }

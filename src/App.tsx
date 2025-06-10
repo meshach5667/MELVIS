@@ -9,7 +9,6 @@ import AssessmentPage from './pages/AssessmentPage';
 import MeditationPage from './pages/MeditationPage';
 import './App.css';
 
-
 function App() {
   return (
     <AuthProvider>
@@ -50,9 +49,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-      {/* setupAxiosInterceptors();  */}
     </AuthProvider>
-
   );
 }
 
