@@ -61,8 +61,6 @@ class ChatResponse(BaseModel):
     response: str
     intent: str
     confidence: float
-    videos: Optional[List[Dict]] = None
-    suggestions: Optional[List[str]] = None
     session_id: str
 
 class VideoSearchRequest(BaseModel):
@@ -359,34 +357,6 @@ async def chat(
         # Get response
         response = intent_classifier.get_response(intent)
         
-        # Get relevant videos
-        video_keywords = intent_classifier.get_video_keywords(intent)
-        videos = []
-        
-        if video_keywords:
-            # Use the first keyword for video search
-            videos = await youtube_service.search_videos(video_keywords[0], max_results=3)
-            
-            # Save video recommendations to database
-            for video in videos:
-                try:
-                    VideoService.save_video_recommendation(
-                        db=db,
-                        video_id=video['id'],
-                        title=video['title'],
-                        description=video.get('description'),
-                        thumbnail_url=video.get('thumbnail'),
-                        youtube_url=video['url'],
-                        channel_name=video.get('channel'),
-                        intent_category=intent,
-                        keywords=','.join(video_keywords)
-                    )
-                except Exception as e:
-                    print(f"Error saving video recommendation: {e}")
-        
-        # Generate follow-up suggestions
-        suggestions = generate_suggestions(intent)
-        
         # Store conversation in database
         ConversationService.create_conversation(
             db=db,
@@ -402,8 +372,6 @@ async def chat(
             response=response,
             intent=intent,
             confidence=confidence,
-            videos=videos,
-            suggestions=suggestions,
             session_id=session_id
         )
         
