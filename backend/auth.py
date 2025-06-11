@@ -24,10 +24,9 @@ security = HTTPBearer()
 # Pydantic models for authentication
 class UserCreate(BaseModel):
     email: str
-    username: str
+    fullname: str
     password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    confirm_password: str
 
 class UserLogin(BaseModel):
     email: str
@@ -103,20 +102,37 @@ def create_user(db: Session, user: UserCreate) -> User:
             detail="Email already registered"
         )
     
-    if get_user_by_username(db, user.username):
+    # Check password confirmation
+    if user.password != user.confirm_password:
         raise HTTPException(
             status_code=400,
-            detail="Username already taken"
+            detail="Passwords do not match"
         )
+    
+    # Create username from email (taking part before @)
+    username = user.email.split('@')[0]
+    
+    # Check if this generated username already exists, if so, append a number
+    existing_user = get_user_by_username(db, username)
+    if existing_user:
+        counter = 1
+        while get_user_by_username(db, f"{username}{counter}"):
+            counter += 1
+        username = f"{username}{counter}"
+    
+    # Split fullname into first and last name
+    name_parts = user.fullname.strip().split(' ', 1)
+    first_name = name_parts[0] if name_parts else ''
+    last_name = name_parts[1] if len(name_parts) > 1 else ''
     
     # Create new user
     hashed_password = get_password_hash(user.password)
     db_user = User(
         email=user.email,
-        username=user.username,
+        username=username,
         hashed_password=hashed_password,
-        first_name=user.first_name,
-        last_name=user.last_name
+        first_name=first_name,
+        last_name=last_name
     )
     db.add(db_user)
     db.commit()
