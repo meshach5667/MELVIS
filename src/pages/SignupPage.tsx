@@ -1,21 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { Heart, Eye, EyeOff, Mail, Lock, User as UserIcon, Loader } from 'lucide-react'; // Renamed User to UserIcon to avoid conflict
-=======
 import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-import { Heart, Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
->>>>>>> parent of 2124527 (otondo melvis)
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-// Removed direct import of handleSignup from api.ts as we use AuthContext's signup
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -32,19 +19,7 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if (!name || !username || !email || !password || !confirmPassword) { // Removed lastName from validation
-=======
     if (!name || !email || !password || !confirmPassword) {
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-    if (!name || !email || !password || !confirmPassword) {
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-    if (!name || !email || !password || !confirmPassword) {
->>>>>>> parent of 2124527 (otondo melvis)
       setError('Please fill in all fields');
       return;
     }
@@ -59,27 +34,11 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // Use the signup function from AuthContext, revert to original fields
-    const signupSuccess = await signup(name, username, email, password, confirmPassword); // Removed lastName
-    if (signupSuccess) {
-=======
-    const success = await signup(name, email, password);
-    if (success) {
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-    const success = await signup(name, email, password);
-    if (success) {
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-    const success = await signup(name, email, password);
-    if (success) {
->>>>>>> parent of 2124527 (otondo melvis)
+    const result = await signup(name, email, password, confirmPassword);
+    if (result.success) {
       navigate('/home');
     } else {
-      setError('Failed to create account. Please try again.');
+      setError(result.error || 'Failed to create account. Please try again.');
     }
   };
 
@@ -126,19 +85,7 @@ const SignupPage: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                  <UserIcon className="h-5 w-5 text-gray-400" />
-=======
                   <User className="h-5 w-5 text-gray-400" />
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-                  <User className="h-5 w-5 text-gray-400" />
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-                  <User className="h-5 w-5 text-gray-400" />
->>>>>>> parent of 2124527 (otondo melvis)
                 </div>
                 <input
                   id="name"
@@ -152,36 +99,6 @@ const SignupPage: React.FC = () => {
               </div>
             </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-            {/* Username Field - Added */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" /> {/* Using UserIcon */}
-                </div>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your username"
-                  required
-                />
-              </div>
-            </div>
-
-=======
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

@@ -112,7 +112,7 @@ const MeditationPage: React.FC = () => {
               <span className="ml-2 text-2xl font-bold text-gray-900">Melvis</span>
             </Link>
             <div className="text-sm text-gray-600">
-              Welcome, {user?.name}
+              Welcome, {user?.email}
             </div>
           </div>
         </div>

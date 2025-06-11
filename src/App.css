@@ -1,5 +1,6 @@
-/* Additional custom styles for the Melvis chatbot */
+/* Mental Health Focused UI Styles for Melvis */
 
+/* Utility classes */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -8,21 +9,11 @@
   overflow: hidden;
 }
 
-/* Card hover effects */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-/* Loading animation for messages */
-@keyframes messageSlideIn {
+/* Smooth animations for calming UX */
+@keyframes gentleFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -30,128 +21,130 @@
   }
 }
 
-.message-animation {
-  animation: messageSlideIn 0.4s ease-out;
+@keyframes gentleSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-/* Pulse effect for important elements */
-.pulse-blue {
-  animation: pulse-blue 2s infinite;
-}
-
-@keyframes pulse-blue {
+@keyframes gentlePulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    opacity: 0.6;
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    opacity: 1;
   }
 }
 
-/* Smooth scrollbar for chat area */
-.chat-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* Message animations */
+.message-enter {
+  animation: gentleFadeIn 0.4s ease-out;
 }
 
-.chat-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
+.typing-pulse {
+  animation: gentlePulse 1.5s ease-in-out infinite;
 }
 
-.chat-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+/* Smooth scrollbar styling */
+.smooth-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+.smooth-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.smooth-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.smooth-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
 }
 
 /* Focus styles for accessibility */
-.focus-ring:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+.focus-visible:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
 }
 
-/* Glassmorphism effect */
-.glass {
+/* Soft shadow effects */
+.soft-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.soft-shadow-lg {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Glassmorphism for modern feel */
+.glass-effect {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Button press animation */
-.button-press:active {
-  transform: scale(0.95);
-  transition: transform 0.1s ease;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
-/* Custom focus styles */
-.focus\:ring-blue-400:focus {
-  --tw-ring-color: rgb(96 165 250 / 0.5);
-}
-
-/* Smooth transitions for interactive elements */
-button, input, .hover\:bg-white\/20:hover {
+/* Calm interaction states */
+button {
   transition: all 0.2s ease-in-out;
 }
 
-/* Enhanced scrollbar for chat area */
-.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+button:active {
+  transform: scale(0.98);
 }
 
-/* Loading animation for messages */
-@keyframes messageAppear {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Gradient text for special elements */
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Card hover effects */
-.card-hover {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+input, textarea {
+  transition: all 0.2s ease-in-out;
 }
 
 /* Mobile responsive adjustments */
-@media (max-width: 768px) {
-  .max-w-xs {
+@media (max-width: 640px) {
+  .message-bubble {
     max-width: 85%;
   }
   
-  .w-80 {
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 50;
+  .chat-input {
+    font-size: 16px; /* Prevents zoom on iOS */
   }
+}
+
+/* Smooth text rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Loading state animations */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Ensure proper text wrapping */
+.break-words {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Custom scrollbar for Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
 }

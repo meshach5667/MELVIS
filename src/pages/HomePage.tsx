@@ -15,6 +15,18 @@ const HomePage: React.FC = () => {
     navigate('/');
   };
 
+  // Helper function to get user's display name
+  const getUserDisplayName = () => {
+    if (!user) return '';
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    if (user.first_name) {
+      return user.first_name;
+    }
+    return user.username || 'User';
+  };
+
   return (
     <div className="min-h-screen bg-blue-50">
       {/* Navigation */}
@@ -28,7 +40,7 @@ const HomePage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-700">
                 <User className="h-5 w-5" />
-                <span className="text-sm font-medium">Welcome, {user?.name}</span>
+                <span className="text-sm font-medium">Welcome, {getUserDisplayName()}</span>
               </div>
               <button
                 onClick={handleLogout}
@@ -52,7 +64,7 @@ const HomePage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              Hello, {user?.name}! 👋
+              Hello, {getUserDisplayName()}! 👋
             </motion.h1>
             <motion.p 
               className="text-xl text-gray-600 mb-8"
@@ -60,11 +72,11 @@ const HomePage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              How are you feeling today? I'm here to support your mental wellness journey.
+              Take a moment for yourself today. I'm here to listen and support your mental wellness journey. 🌟
             </motion.p>
             <motion.button
               onClick={() => setIsChatModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-medium transition-colors inline-flex items-center justify-center shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 rounded-2xl text-lg font-medium transition-all inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -72,7 +84,7 @@ const HomePage: React.FC = () => {
               whileTap={{ scale: 0.95 }}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
-              Start Chatting with Melvis
+              Start Your Wellness Chat
             </motion.button>
           </div>
         </div>

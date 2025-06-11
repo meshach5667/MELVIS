@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
-import VideoSidebar from './VideoSidebar';
-import Suggestions from './Suggestions';
 import TypingIndicator from './TypingIndicator';
 import { chatApi, generateUserId } from '../utils/api';
-import type { Message, Video } from '../utils/api';
+import type { Message } from '../utils/api';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -17,15 +15,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm Melvis, your mental health companion. I'm here to listen, support, and help you find resources for your wellbeing. How are you feeling today?",
+      text: "Hello! I'm Melvis, your mental health companion. I'm here to listen, support, and help you on your wellness journey. How are you feeling today? 💙",
       sender: 'bot',
       timestamp: new Date(),
     }
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [videos, setVideos] = useState<Video[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [userId] = useState(() => generateUserId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,7 +37,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
@@ -77,34 +73,28 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
         };
 
         setMessages(prev => [...prev, botMessage]);
-        setSuggestions(response.suggestions || []);
-        setVideos(response.videos || []);
         setIsLoading(false);
-      }, 1000);
+      }, 800);
     } catch (error) {
       setTimeout(() => {
         setIsTyping(false);
         
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+          text: "I'm having trouble connecting right now. Please try again in a moment. 🌟",
           sender: 'bot',
           timestamp: new Date(),
         };
 
         setMessages(prev => [...prev, errorMessage]);
         setIsLoading(false);
-      }, 1000);
+      }, 800);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(inputText);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    sendMessage(suggestion);
   };
 
   if (!isOpen) return null;
@@ -115,81 +105,76 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-6"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[80vh] flex overflow-hidden"
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ duration: 0.2 }}
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] md:h-[80vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Chat Section */}
-          <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">Chat with Melvis</h2>
-                <p className="text-blue-100 text-sm">Your AI Mental Health Companion</p>
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-4 md:p-6 flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <Heart className="h-5 w-5 text-white" />
               </div>
-              <button
-                onClick={onClose}
-                className="text-white hover:text-blue-200 p-2 rounded-full hover:bg-blue-600 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
+              <div>
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800">Melvis</h2>
+                <p className="text-sm text-gray-600">Your wellness companion</p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-blue-50/30">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-blue-50/30 via-white to-indigo-50/20 smooth-scrollbar">
+            <div className="space-y-4 md:space-y-6">
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
               {isTyping && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
+          </div>
 
-            {/* Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="px-4 pb-2">
-                <Suggestions 
-                  suggestions={suggestions} 
-                  onSuggestionClick={handleSuggestionClick}
-                  isLoading={isLoading}
-                />
-              </div>
-            )}
-
-            {/* Input */}
-            <form onSubmit={handleSubmit} className="p-4 bg-white border-t">
-              <div className="flex space-x-2">
+          {/* Input */}
+          <div className="p-4 md:p-6 bg-white border-t border-gray-100">
+            <form onSubmit={handleSubmit} className="flex space-x-3">
+              <div className="flex-1 relative">
                 <input
                   ref={inputRef}
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Share what's on your mind..."
-                  className="flex-1 px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 md:px-6 py-3 md:py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-gray-50 focus:bg-white transition-all text-sm md:text-base placeholder-gray-500"
                   disabled={isLoading}
+                  maxLength={500}
                 />
-                <button
-                  type="submit"
-                  disabled={!inputText.trim() || isLoading}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-full transition-colors flex items-center justify-center min-w-[3rem]"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
               </div>
+              <button
+                type="submit"
+                disabled={!inputText.trim() || isLoading}
+                className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-2xl transition-all flex items-center justify-center min-w-[3rem] shadow-lg hover:shadow-xl disabled:shadow-none"
+              >
+                <Send className="h-4 w-4 md:h-5 md:w-5" />
+              </button>
             </form>
-          </div>
-
-          {/* Video Sidebar */}
-          {videos.length > 0 && (
-            <div className="w-80 border-l border-gray-200">
-              <VideoSidebar videos={videos} />
+            
+            {/* Character count */}
+            <div className="mt-2 text-xs text-gray-400 text-right">
+              {inputText.length}/500
             </div>
-          )}
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

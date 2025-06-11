@@ -1,31 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import Cookies from 'js-cookie';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+import { 
+  handleLogin as apiLogin, 
+  handleSignup as apiSignup, 
+  getUserData as getStoredUserData,
+  clearAuthData,
+  setAuthData,
+  isAuthenticated as checkAuth,
+  type User
+} from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Reverted to 5 arguments, omitting lastName
-  signup: (name: string, username: string, email: string, password: string, confirmPassword: string) => Promise<boolean>; 
-=======
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
->>>>>>> parent of 2124527 (otondo melvis)
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (name: string, email: string, password: string, confirmPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -49,127 +38,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing auth token
-    const token = Cookies.get('auth_token');
-    const userData = Cookies.get('user_data');
+    // Check for existing auth token and user data on app load
+    const userData = getStoredUserData();
+    const isAuth = checkAuth();
     
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        Cookies.remove('auth_token');
-        Cookies.remove('user_data');
-      }
+    if (isAuth && userData) {
+      setUser(userData);
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      const result = await apiLogin(email, password);
       
-      // For now, simulate API call
-      // In production, replace with actual API call
-      if (email && password) {
-        const mockUser: User = {
-          id: '1',
-          email,
-          name: email.split('@')[0],
-        };
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Store auth data
-        Cookies.set('auth_token', 'mock_token_' + Date.now(), { expires: 7 });
-        Cookies.set('user_data', JSON.stringify(mockUser), { expires: 7 });
-        
-        setUser(mockUser);
-        return true;
+      if (result.success && result.data) {
+        setAuthData(result.data);
+        setUser(result.data.user);
+        return { success: true };
       }
-      return false;
+      
+      return { success: false, error: result.error || 'Login failed' };
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      return { success: false, error: 'Login failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Reverted to 5 arguments, omitting lastName
-  const signup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
+  const signup = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    confirmPassword: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      // Reverted to 5 arguments, omitting lastName
-      const success = await apiHandleSignup(name, username, email, password, confirmPassword);
-      if (success) {
-        const userDataString = Cookies.get('user_data') || localStorage.getItem('user');
-        if (userDataString) { // Corrected syntax error: removed extra parenthesis
-          const parsedUser = JSON.parse(userDataString);
-          setUser({
-            id: parsedUser.id || parsedUser.user?.id,
-            email: parsedUser.email || parsedUser.user?.email,
-            name: parsedUser.name || parsedUser.username || parsedUser.user?.username,
-          });
-        }
-=======
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-=======
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
->>>>>>> parent of 2124527 (otondo melvis)
-=======
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
->>>>>>> parent of 2124527 (otondo melvis)
+      const result = await apiSignup(name, email, password, confirmPassword);
       
-      // For now, simulate API call
-      // In production, replace with actual API call
-      if (name && email && password) {
-        const mockUser: User = {
-          id: '1',
-          email,
-          name,
-        };
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Store auth data
-        Cookies.set('auth_token', 'mock_token_' + Date.now(), { expires: 7 });
-        Cookies.set('user_data', JSON.stringify(mockUser), { expires: 7 });
-        
-        setUser(mockUser);
-        return true;
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
+      if (result.success && result.data) {
+        setAuthData(result.data);
+        setUser(result.data.user);
+        return { success: true };
       }
-      return false;
+      
+      return { success: false, error: result.error || 'Registration failed' };
     } catch (error) {
       console.error('Signup error:', error);
-      return false;
+      return { success: false, error: 'Registration failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    Cookies.remove('auth_token');
-    Cookies.remove('user_data');
+    clearAuthData();
     setUser(null);
   };
 

@@ -2,6 +2,63 @@ import axios from 'axios';
 
 export const API_BASE_URL = 'http://localhost:8000';
 
+// Configure axios to include auth token in requests
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Configure axios to handle auth errors
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token is invalid, clear auth data and redirect to login
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Auth-related interfaces
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export interface SignupRequest {
+  email: string;
+  fullname: string;
+  password: string;
+  confirm_password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface Message {
   id: string;
   text: string;
@@ -24,8 +81,7 @@ export interface ChatResponse {
   response: string;
   intent: string;
   confidence: number;
-  videos?: Video[];
-  suggestions?: string[];
+  session_id: string;
 }
 
 export interface ChatRequest {
@@ -60,82 +116,74 @@ export const generateUserId = (): string => {
 };
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-export const handleLogin = async (email: string, password: string): Promise<boolean> => {
+export const handleSignup = async (fullname: string, email: string, password: string, confirmPassword: string): Promise<{ success: boolean; data?: AuthResponse; error?: string }> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
-    if (response.status === 200) {
-      // Store user data in cookies or local storage
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('Login error:', error);
-    return false;
-  }
-}
-// Reverted to the state before lastName was introduced
-export const handleSignup = async (name: string, username: string, email: string, password: string, confirmPassword: string): Promise<boolean> => {
-  try {
-    const payload = {
+    const signupData: SignupRequest = {
       email,
-      username,
+      fullname,
       password,
-      confirmPassword,
-      first_name: name, // 'name' from frontend maps to 'first_name'
-      // last_name is omitted as it was in the target state
+      confirm_password: confirmPassword
     };
-    const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
-    if (response.status === 201 || response.status === 200) {
-      localStorage.setItem('user', JSON.stringify(response.data.user || response.data));
-      if (response.data.access_token) {
-        Cookies.set('auth_token', response.data.access_token, { expires: 7 });
-      }
-      Cookies.set('user_data', JSON.stringify(response.data.user || response.data), { expires: 7 });
-      return true;
+    
+    const response = await axios.post<AuthResponse>(`${API_BASE_URL}/auth/register`, signupData);
+    
+    if (response.status === 200) {
+      return { success: true, data: response.data };
     }
-    return false;
-  } catch (error: any) { // Added :any to error type
-    console.error('Signup error in api.ts:', error.response ? error.response.data : error.message);
-    return false;
+    return { success: false, error: 'Registration failed' };
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    const errorMessage = error.response?.data?.detail || 'Registration failed';
+    return { success: false, error: errorMessage };
   }
-}
+};
+
+export const handleLogin = async (email: string, password: string): Promise<{ success: boolean; data?: AuthResponse; error?: string }> => {
+  try {
+    const loginData: LoginRequest = { email, password };
+    const response = await axios.post<AuthResponse>(`${API_BASE_URL}/auth/login`, loginData);
+    
+    if (response.status === 200) {
+      return { success: true, data: response.data };
+    }
+    return { success: false, error: 'Login failed' };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    const errorMessage = error.response?.data?.detail || 'Invalid email or password';
+    return { success: false, error: errorMessage };
+  }
+};
 export const handleLogout = (): void => {
-  // Clear user data from cookies or local storage
-  localStorage.removeItem('user');
-  // Optionally, redirect to login page
+  clearAuthData();
   window.location.href = '/login';
-}
-export const isAuthenticated = (): boolean => {
-  const user = localStorage.getItem('user');
-  return !!user;
-}
-export const getCurrentUser = (): any => {
-  const user = localStorage.getItem('user');
-  return user ? JSON.parse(user) : null;
-}
-export const getAuthToken = (): string | null => {
-  const user = localStorage.getItem('user');
-  return user ? JSON.parse(user).token || null : null;
-}
-export const setAuthToken = (token: string): void => {  
-  const user = getCurrentUser();
-  if (user) {
-    user.token = token;
-    localStorage.setItem('user', JSON.stringify(user));
+};
+
+export const getUserData = (): User | null => {
+  try {
+    const userData = localStorage.getItem('user_data');
+    return userData ? JSON.parse(userData) : null;
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    return null;
   }
-}
+};
+
+export const isAuthenticated = (): boolean => {
+  const token = getAuthToken();
+  const user = getUserData();
+  return !!(token && user);
+};
+
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('auth_token');
+};
+
+export const setAuthData = (authResponse: AuthResponse): void => {
+  localStorage.setItem('auth_token', authResponse.access_token);
+  localStorage.setItem('user_data', JSON.stringify(authResponse.user));
+};
+
 export const clearAuthData = (): void => {
-  localStorage.removeItem('user');
-  // Optionally, redirect to login page
-  window.location.href = '/login';
-}
-=======
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
-=======
->>>>>>> parent of 2124527 (otondo melvis)
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user_data');
+};
