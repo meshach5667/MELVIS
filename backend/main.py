@@ -61,6 +61,8 @@ class ChatResponse(BaseModel):
     response: str
     intent: str
     confidence: float
+    videos: Optional[List[Dict]] = None
+    suggestions: Optional[List[str]] = None
     session_id: str
 
 class VideoSearchRequest(BaseModel):
@@ -85,62 +87,98 @@ class AssessmentResponse(BaseModel):
 class IntentClassifier:
     def __init__(self):
         self.intents = {
-            "anxiety": {
-                "keywords": ["anxious", "anxiety", "worried", "stress", "panic", "nervous", "overwhelmed", "fear"],
-                "responses": [
-                    "I understand you're feeling anxious. Anxiety is a common experience, and there are effective ways to manage it.",
-                    "It sounds like you're dealing with some anxiety. Let's explore some techniques that might help you feel more grounded.",
-                    "I hear that you're feeling overwhelmed. Anxiety can be challenging, but there are strategies we can discuss."
-                ],
-                "video_keywords": ["anxiety relief", "breathing exercises", "anxiety management", "calm anxiety"]
-            },
-            "depression": {
-                "keywords": ["depressed", "depression", "sad", "hopeless", "empty", "down", "low mood", "worthless"],
-                "responses": [
-                    "I'm sorry you're feeling this way. Depression can be very difficult, but please know that you're not alone.",
-                    "It takes courage to reach out when you're feeling depressed. I'm here to support you.",
-                    "These feelings are valid, and it's important that you're talking about them. Let's explore some ways to help."
-                ],
-                "video_keywords": ["depression help", "mental health support", "overcoming depression", "depression recovery"]
-            },
-            "stress": {
-                "keywords": ["stressed", "stress", "pressure", "overwhelmed", "burnout", "exhausted", "tired"],
-                "responses": [
-                    "Stress can be really challenging to manage. Let's talk about some effective stress-reduction techniques.",
-                    "It sounds like you're under a lot of pressure. Stress is your body's natural response, and there are healthy ways to cope.",
-                    "I understand you're feeling stressed. Let's explore some strategies to help you manage these feelings."
-                ],
-                "video_keywords": ["stress relief", "stress management", "relaxation techniques", "burnout recovery"]
-            },
-            "sleep": {
-                "keywords": ["sleep", "insomnia", "tired", "exhausted", "can't sleep", "sleepless", "nightmares"],
-                "responses": [
-                    "Sleep issues can significantly impact your mental health. Let's discuss some strategies for better sleep hygiene.",
-                    "Getting quality sleep is crucial for mental wellness. I can share some techniques that might help.",
-                    "Sleep difficulties are common and treatable. Let's explore some approaches to improve your rest."
-                ],
-                "video_keywords": ["sleep hygiene", "insomnia help", "better sleep", "sleep meditation"]
-            },
-            "self_care": {
-                "keywords": ["self care", "self-care", "wellness", "healthy habits", "routine", "balance"],
-                "responses": [
-                    "Self-care is so important for mental health. Let's explore some practices that might work for you.",
-                    "Taking care of yourself is not selfish—it's necessary. What aspects of self-care interest you most?",
-                    "Building healthy self-care routines can make a significant difference in how you feel."
-                ],
-                "video_keywords": ["self care routine", "mental health wellness", "self care tips", "healthy habits"]
-            },
-            "general": {
-                "keywords": ["help", "support", "talk", "listen", "advice", "guidance"],
-                "responses": [
-                    "I'm here to listen and support you. What's on your mind today?",
-                    "Thank you for reaching out. I'm here to help in whatever way I can.",
-                    "I'm glad you're here. What would you like to talk about?"
-                ],
-                "video_keywords": ["mental health support", "emotional wellness", "self help", "mental health tips"]
-            }
-        }
-        
+    "social_anxiety": {
+        "keywords": ["social anxiety", "shy", "awkward", "nervous in public", "fear of people"],
+        "responses": [
+            "Social situations can be stressful. You're not alone in this feeling—many people experience social anxiety.",
+            "It's okay to feel uneasy in social settings. Let's find ways to build your confidence slowly.",
+            "You don’t have to force yourself into discomfort. Let’s explore some gentle exposure strategies together."
+        ],
+        "video_keywords": ["social anxiety help", "overcoming shyness", "public speaking anxiety"]
+    },
+    "anger": {
+        "keywords": ["angry", "furious", "rage", "irritated", "frustrated"],
+        "responses": [
+            "Anger is a natural emotion, but it can be tough to manage. Let's talk through what you're feeling.",
+            "It's okay to be angry—what matters is how we handle it. I can share some calming strategies with you.",
+            "You deserve to be heard. Let’s find a healthy way to express your anger."
+        ],
+        "video_keywords": ["anger management", "dealing with anger", "calm down techniques"]
+    },
+    "burnout": {
+        "keywords": ["burnt out", "burnout", "no energy", "done with everything", "mentally tired"],
+        "responses": [
+            "Burnout can make everything feel overwhelming. You deserve rest and care.",
+            "It’s okay to pause. Let’s talk about what’s draining you and how to refill your cup.",
+            "When you’re burned out, even small steps matter. Let’s find one thing that can ease your load."
+        ],
+        "video_keywords": ["burnout recovery", "mental fatigue help", "rest and recharge"]
+    },
+    "perfectionism": {
+        "keywords": ["perfectionist", "never good enough", "everything must be perfect", "flawed"],
+        "responses": [
+            "Perfectionism can be exhausting. You are enough, even with imperfections.",
+            "It’s okay to let go of perfect. Let’s work on embracing progress over perfection.",
+            "Being human means making mistakes. Let's find freedom in self-compassion."
+        ],
+        "video_keywords": ["overcoming perfectionism", "self compassion", "embrace imperfection"]
+    },
+    "body_image": {
+        "keywords": ["hate my body", "body image", "too fat", "too skinny", "ugly"],
+        "responses": [
+            "Your worth isn't tied to your appearance. Let's talk about building a healthier self-image.",
+            "Body image struggles are real, but you’re more than your looks.",
+            "Let’s explore ways to appreciate and care for your body, just as it is."
+        ],
+        "video_keywords": ["body positivity", "loving your body", "body image healing"]
+    },
+    "procrastination": {
+        "keywords": ["procrastinate", "can't start", "avoiding work", "delaying tasks", "unproductive"],
+        "responses": [
+            "Procrastination can feel paralyzing. Let’s break things down into small, manageable steps.",
+            "Sometimes starting is the hardest part. Let’s set a tiny goal together.",
+            "It’s okay to struggle with motivation. Let’s create a plan you can stick with."
+        ],
+        "video_keywords": ["stop procrastinating", "how to start tasks", "productivity tips"]
+    },
+    "isolation": {
+        "keywords": ["lonely", "isolated", "alone", "no one understands", "cut off"],
+        "responses": [
+            "Feeling isolated is incredibly tough. You're not alone in this—we can talk through it.",
+            "It’s okay to crave connection. Let’s think about gentle ways to reconnect.",
+            "Loneliness doesn’t define you. Let’s explore what support can look like right now."
+        ],
+        "video_keywords": ["coping with loneliness", "connection strategies", "how to feel less alone"]
+    },
+    "trauma": {
+        "keywords": ["trauma", "triggered", "flashback", "bad memories", "unhealed wounds"],
+        "responses": [
+            "Trauma can affect many areas of life. It’s okay to seek help in processing it.",
+            "You’re strong for surviving what you’ve been through. Let’s explore resources for healing.",
+            "Processing trauma is a journey. I'm here to help support that process."
+        ],
+        "video_keywords": ["healing from trauma", "trauma recovery", "PTSD help"]
+    },
+    "guilt": {
+        "keywords": ["guilty", "shame", "regret", "shouldn’t have", "remorse"],
+        "responses": [
+            "Guilt is a heavy emotion. Let’s talk about what’s behind it and how to move forward.",
+            "You are not your mistakes. Let’s explore how to show yourself compassion.",
+            "It’s okay to feel guilt. But you deserve peace too—let’s work toward that."
+        ],
+        "video_keywords": ["dealing with guilt", "self forgiveness", "moving past shame"]
+    },
+    "fear": {
+        "keywords": ["scared", "fearful", "afraid", "panic", "dread"],
+        "responses": [
+            "Fear is a natural response, but you don’t have to face it alone.",
+            "Let’s identify what’s making you feel afraid and talk through it together.",
+            "I hear your fear, and I’m here with you. Let’s find a way to make you feel safer."
+        ],
+        "video_keywords": ["coping with fear", "overcoming anxiety", "how to calm fear"]
+    }
+}
+
         # Prepare vectorizer for intent classification
         all_texts = []
         self.intent_labels = []
@@ -357,6 +395,34 @@ async def chat(
         # Get response
         response = intent_classifier.get_response(intent)
         
+        # Get relevant videos
+        video_keywords = intent_classifier.get_video_keywords(intent)
+        videos = []
+        
+        if video_keywords:
+            # Use the first keyword for video search
+            videos = await youtube_service.search_videos(video_keywords[0], max_results=3)
+            
+            # Save video recommendations to database
+            for video in videos:
+                try:
+                    VideoService.save_video_recommendation(
+                        db=db,
+                        video_id=video['id'],
+                        title=video['title'],
+                        description=video.get('description'),
+                        thumbnail_url=video.get('thumbnail'),
+                        youtube_url=video['url'],
+                        channel_name=video.get('channel'),
+                        intent_category=intent,
+                        keywords=','.join(video_keywords)
+                    )
+                except Exception as e:
+                    print(f"Error saving video recommendation: {e}")
+        
+        # Generate follow-up suggestions
+        suggestions = generate_suggestions(intent)
+        
         # Store conversation in database
         ConversationService.create_conversation(
             db=db,
@@ -372,6 +438,8 @@ async def chat(
             response=response,
             intent=intent,
             confidence=confidence,
+            videos=videos,
+            suggestions=suggestions,
             session_id=session_id
         )
         
