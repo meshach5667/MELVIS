@@ -5,6 +5,8 @@ A compassionate AI chatbot designed to provide mental health support, featuring 
 ## Features
 
 -  **Intent-Based Chat**: Advanced natural language understanding to classify user intent (anxiety, depression, stress, sleep, self-care)
+-  **Gemini AI Fallback**: Intelligent responses for complex queries when intent classification confidence is low
+-  **Mental Health Focused**: Strict filtering ensures all AI responses are mental health related
 -  **YouTube Integration**: Curated mental health videos based on conversation context
 -  **Beautiful Blue Theme**: Calming, therapeutic UI design
 -  **Real-time Chat**: Smooth, responsive conversation experience
@@ -130,3 +132,13 @@ GET /conversation/{user_id}
    ```
    YOUTUBE_API_KEY=your_api_key_here
    ```
+
+### Gemini AI API Setup (Required for Fallback Responses)
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Create a new API key for Gemini Pro
+3. Add the API key to `backend/.env`:
+   ```
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+**Note**: The Gemini API provides intelligent fallback responses when the intent classification confidence is low. This ensures users always receive helpful, mental health-focused responses even for complex or unusual queries.

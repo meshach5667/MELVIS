@@ -10,6 +10,7 @@ import json
 import re
 import httpx
 from googleapiclient.discovery import build
+import google.generativeai as genai
 from dotenv import load_dotenv
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -199,9 +200,70 @@ class IntentClassifier:
     def get_video_keywords(self, intent: str) -> List[str]:
         """Get video search keywords for the given intent"""
         return self.intents[intent]["video_keywords"]
+    
+    def should_use_fallback(self, confidence: float) -> bool:
+        """Determine if we should fallback to Gemini API based on confidence"""
+        # Use fallback if confidence is below threshold (0.3)
+        return confidence < 0.3
 
 # Initialize intent classifier
 intent_classifier = IntentClassifier()
+
+# Gemini AI service for fallback responses
+class GeminiService:
+    def __init__(self):
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if self.api_key:
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel('gemini-pro')
+        else:
+            self.model = None
+    
+    async def get_mental_health_response(self, user_message: str) -> str:
+        """Get a mental health focused response from Gemini AI"""
+        if not self.model:
+            return "I'm here to listen and support you. While I may not have specific guidance right now, please know that reaching out is an important step. Consider speaking with a mental health professional for personalized support."
+        
+        try:
+            # Create a strict mental health prompt
+            prompt = f"""
+You are Melvis, a compassionate mental health support chatbot. You MUST follow these strict guidelines:
+
+1. ONLY respond to mental health related topics (anxiety, depression, stress, sleep, self-care, emotional wellness, therapy, mindfulness, coping strategies)
+2. If the user asks about anything unrelated to mental health, politely redirect them back to mental health topics
+3. Provide supportive, empathetic, and helpful responses
+4. Never provide medical diagnosis or treatment recommendations
+5. Always encourage professional help when appropriate
+6. Keep responses warm, caring, and under 200 words
+7. If asked about non-mental health topics like weather, sports, technology, politics, etc., say: "I'm specifically designed to help with mental health and emotional wellness. How are you feeling today? Is there anything about your mental health or emotional wellbeing I can support you with?"
+
+User message: "{user_message}"
+
+Remember: You must ONLY discuss mental health topics. Redirect any other conversations back to mental health and emotional wellness.
+"""
+            
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+            
+        except Exception as e:
+            print(f"Gemini API error: {e}")
+            return "I'm here to listen and support you. While I may not have specific guidance right now, please know that reaching out is an important step. Consider speaking with a mental health professional for personalized support."
+
+    def is_mental_health_related(self, message: str) -> bool:
+        """Check if a message is related to mental health"""
+        mental_health_keywords = [
+            'mental', 'health', 'anxiety', 'depression', 'stress', 'emotional', 'feeling',
+            'mood', 'therapy', 'counseling', 'wellbeing', 'wellness', 'mindfulness',
+            'meditation', 'self-care', 'support', 'help', 'cope', 'coping', 'overwhelmed',
+            'sad', 'happy', 'angry', 'frustrated', 'worried', 'fear', 'panic', 'sleep',
+            'tired', 'exhausted', 'burnout', 'lonely', 'isolation', 'relationship'
+        ]
+        
+        message_lower = message.lower()
+        return any(keyword in message_lower for keyword in mental_health_keywords)
+
+# Initialize Gemini service
+gemini_service = GeminiService()
 
 # YouTube API service
 class YouTubeService:
@@ -356,36 +418,61 @@ async def chat(
         # Classify intent
         intent, confidence = intent_classifier.classify_intent(message)
         
-        # Get response
-        response = intent_classifier.get_response(intent)
+        # Check if we should use Gemini fallback
+        if intent_classifier.should_use_fallback(confidence):
+            # Check if message is mental health related
+            if gemini_service.is_mental_health_related(message):
+                # Use Gemini for mental health response
+                response = await gemini_service.get_mental_health_response(message)
+                intent = "gemini_fallback"
+                confidence = 0.8  # Set higher confidence for Gemini responses
+            else:
+                # Non-mental health query - redirect to mental health
+                response = "I'm specifically designed to help with mental health and emotional wellness. How are you feeling today? Is there anything about your mental health or emotional wellbeing I can support you with?"
+                intent = "redirect_to_mental_health"
+                confidence = 0.9
+        else:
+            # Use standard intent-based response
+            response = intent_classifier.get_response(intent)
         
-        # Get relevant videos
-        video_keywords = intent_classifier.get_video_keywords(intent)
+        # Get relevant videos (only for standard intents, not Gemini fallback)
+        video_keywords = []
         videos = []
         
-        if video_keywords:
-            # Use the first keyword for video search
-            videos = await youtube_service.search_videos(video_keywords[0], max_results=3)
-            
-            # Save video recommendations to database
-            for video in videos:
-                try:
-                    VideoService.save_video_recommendation(
-                        db=db,
-                        video_id=video['id'],
-                        title=video['title'],
-                        description=video.get('description'),
-                        thumbnail_url=video.get('thumbnail'),
-                        youtube_url=video['url'],
-                        channel_name=video.get('channel'),
-                        intent_category=intent,
-                        keywords=','.join(video_keywords)
-                    )
-                except Exception as e:
-                    print(f"Error saving video recommendation: {e}")
+        if intent in intent_classifier.intents:
+            video_keywords = intent_classifier.get_video_keywords(intent)
+            if video_keywords:
+                # Use the first keyword for video search
+                videos = await youtube_service.search_videos(video_keywords[0], max_results=3)
+                
+                # Save video recommendations to database
+                for video in videos:
+                    try:
+                        VideoService.save_video_recommendation(
+                            db=db,
+                            video_id=video['id'],
+                            title=video['title'],
+                            description=video.get('description'),
+                            thumbnail_url=video.get('thumbnail'),
+                            youtube_url=video['url'],
+                            channel_name=video.get('channel'),
+                            intent_category=intent,
+                            keywords=','.join(video_keywords)
+                        )
+                    except Exception as e:
+                        print(f"Error saving video recommendation: {e}")
         
         # Generate follow-up suggestions
-        suggestions = generate_suggestions(intent)
+        if intent in intent_classifier.intents:
+            suggestions = generate_suggestions(intent)
+        else:
+            # Default mental health suggestions for Gemini responses
+            suggestions = [
+                "How can I manage my daily stress?",
+                "What are some good self-care practices?",
+                "I'd like to learn about mindfulness techniques",
+                "How can I improve my sleep quality?"
+            ]
         
         # Store conversation in database
         ConversationService.create_conversation(

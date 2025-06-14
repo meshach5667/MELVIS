@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://localhost:8000';
+export const API_BASE_URL = 'http://localhost:8001';
 
-// Configure axios to include auth token in requests
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');

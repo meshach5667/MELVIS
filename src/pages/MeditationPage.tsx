@@ -100,6 +100,18 @@ const MeditationPage: React.FC = () => {
     window.open(youtubeUrl, '_blank');
   };
 
+   const getUserDisplayName = () => {
+    if (!user) return '';
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    if (user.first_name) {
+      return user.first_name;
+    }
+    return user.username || 'User';
+  };
+
+
   return (
     <div className="min-h-screen bg-blue-50">
       {/* Navigation */}
@@ -112,7 +124,7 @@ const MeditationPage: React.FC = () => {
               <span className="ml-2 text-2xl font-bold text-gray-900">Melvis</span>
             </Link>
             <div className="text-sm text-gray-600">
-              Welcome, {user?.email}
+              Welcome, {getUserDisplayName()}
             </div>
           </div>
         </div>
